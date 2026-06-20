@@ -25,7 +25,10 @@ const envSchema = z.object({
     .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
     .default("info"),
   CORS_ORIGIN: z.string().default("*"),
-  FRONTEND_ORIGIN: z.string(),
+  FRONTEND_ORIGIN: z.string().default("http://localhost:5173"),
+  DATABASE_URL: z.string().min(1),
+  BETTER_AUTH_SECRET: z.string().min(32),
+  BETTER_AUTH_URL: z.string().url().optional(),
 });
 
 const raw = envSchema.parse(process.env);
@@ -55,7 +58,27 @@ export const trustedFrontendOrigins: string[] = (() => {
 
 export const corsCredentialsEnabled = normalizeOrigin(raw.CORS_ORIGIN) !== "*";
 
-export const env = raw;
+export const env = {
+  ...raw,
+  BETTER_AUTH_URL:
+    raw.BETTER_AUTH_URL ??
+    `http://${raw.HOST === "0.0.0.0" ? "localhost" : raw.HOST}:${raw.PORT}`,
+};
+
+const EXPO_TRUSTED_ORIGINS =
+  env.NODE_ENV === "development"
+    ? (["Voyager://", "exp://", "exp://**", "exp://192.168.*.*:*/**"] as const)
+    : (["Voyager://"] as const);
+
+/** Origins Better Auth accepts for cross-origin auth requests. */
+export const TRUSTED_ORIGINS: string[] = (() => {
+  const origins = new Set<string>([
+    ...trustedFrontendOrigins,
+    ...EXPO_TRUSTED_ORIGINS,
+    env.BETTER_AUTH_URL.replace(/\/$/, ""),
+  ]);
+  return [...origins];
+})();
 
 export function getEmailVerificationCallbackUrl(): string {
   const fromEnv = env.FRONTEND_ORIGIN?.replace(/\/$/, "");

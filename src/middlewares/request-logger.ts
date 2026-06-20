@@ -2,8 +2,8 @@ import { createMiddleware } from "hono/factory";
 import { logger } from "../lib/logger";
 import type { AppVariables } from "../types";
 
-export const requestLogger = () =>
-  createMiddleware<{ Variables: AppVariables }>(async (c, next) => {
+export const requestLoggerMiddleware = createMiddleware<{ Variables: AppVariables }>(
+  async (c, next) => {
     const startedAt = performance.now();
 
     await next();
@@ -20,4 +20,5 @@ export const requestLogger = () =>
       },
       "request completed",
     );
-  });
+  },
+);

@@ -8,11 +8,12 @@ import {
 import { db } from "./db";
 import * as schema from "./db/schema";
 import { expo } from "@better-auth/expo";
+import { expoDefaultCallback } from "./plugins/expo-default-callback";
 
 export const auth = betterAuth({
   appName: "Voyager API",
 
-  plugins: [expo()],
+  plugins: [expo(), expoDefaultCallback()],
 
   baseURL: env.BETTER_AUTH_URL,
 
@@ -28,6 +29,22 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: env.NODE_ENV === "production",
+  },
+
+  socialProviders: {
+    google: {
+      clientId: env.GOOGLE_CLIENT_ID as string,
+      clientSecret: env.GOOGLE_CLIENT_SECRET as string,
+    },
+  },
+
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google"],
+      // Email/password sign-ups in dev skip verification; allow Google to link anyway.
+      requireLocalEmailVerified: env.NODE_ENV === "production",
+    },
   },
 
   emailVerification: {

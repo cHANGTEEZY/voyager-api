@@ -29,6 +29,8 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   BETTER_AUTH_SECRET: z.string().min(32),
   BETTER_AUTH_URL: z.string().url().optional(),
+  GOOGLE_CLIENT_ID: z.string().min(1),
+  GOOGLE_CLIENT_SECRET: z.string().min(1),
 });
 
 const raw = envSchema.parse(process.env);
@@ -67,8 +69,16 @@ export const env = {
 
 const EXPO_TRUSTED_ORIGINS =
   env.NODE_ENV === "development"
-    ? (["Voyager://", "exp://", "exp://**", "exp://192.168.*.*:*/**"] as const)
-    : (["Voyager://"] as const);
+    ? ([
+        "Voyager://",
+        "voyager://",
+        "Voyager://*",
+        "voyager://*",
+        "exp://",
+        "exp://**",
+        "exp://192.168.*.*:*/**",
+      ] as const)
+    : (["Voyager://", "voyager://", "Voyager://*", "voyager://*"] as const);
 
 /** Origins Better Auth accepts for cross-origin auth requests. */
 export const TRUSTED_ORIGINS: string[] = (() => {
